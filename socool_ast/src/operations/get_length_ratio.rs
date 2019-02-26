@@ -18,6 +18,7 @@ pub mod get_length_ratio {
                 | Op::TransposeA { .. }
                 | Op::PanA { .. }
                 | Op::PanM { .. }
+                | Op::Decay { .. }
                 | Op::Tag(_)
                 | Op::Fid(_)
                 | Op::Gain { .. } => Ratio::from_integer(1),

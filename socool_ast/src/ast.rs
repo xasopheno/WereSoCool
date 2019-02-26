@@ -49,6 +49,9 @@ pub enum Op {
     Silence {
         m: Rational64,
     },
+    Decay {
+        m: Rational64,
+    },
     TransposeM {
         m: Rational64,
     },
@@ -120,6 +123,7 @@ pub fn is_choice_op(op_or_nf: OpOrNf, table: &OpOrNfTable) -> bool {
             | Op::Gain { .. }
             | Op::Length { .. }
             | Op::Tag { .. }
+            | Op::Decay { .. }
             | Op::Fid { .. }
             | Op::FunctionDef { .. }
             | Op::FunctionCall { .. }

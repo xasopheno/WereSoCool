@@ -59,6 +59,16 @@ pub mod normalize {
                     }
                 }
 
+                Op::Decay { m } => {
+                    //                    let name = name.to_string();
+                    //                    let result = {};
+                    //                    for seq in input.operations.iter_mut() {
+                    //                        for p_op in seq {
+                    //                            p_op.names.insert(name.clone());
+                    //                        }
+                    //                    }
+                }
+
                 Op::FInvert => {
                     for voice in input.operations.iter_mut() {
                         for point_op in voice {

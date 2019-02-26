@@ -1,4 +1,4 @@
-{ f: 300, l: 1, g: 1, p: 0}
+{ f: 300, l: 1.2, g: 1, p: 0}
 
 overtones = {
     O[
@@ -12,22 +12,25 @@ overtones = {
 thing1 = {
 	Seq [
 		Overlay [
-			AsIs, 
-			Tm 3/2,
-			-- Tm 5/2,
-		],
-		Seq [
 			Tm 11/8,
-			-- Tm 8/5,
+			Tm 8/5,
 			-- Overlay [
 			-- 	Tm 11/8, 
 			-- 	Tm 5/3,
 			-- ],
 			-- Tm 5/4,
 			-- Tm 1
-		]
+		] | Seq [Length 1/20, Length 9/20 | Silence 1/2] > FitLength Length 1,
 
-	]
+		Overlay [
+			Tm 3/2 | Seq [AsIs, Silence 1/10] > FitLength Length 1, 
+			AsIs | Seq [AsIs, Silence 1/10] > FitLength Length 1,
+			-- Tm 5/2,
+		],
+
+	] 
+	| Seq [AsIs, Tm 7/8]
+	| Seq [Repeat 3, Tm 9/8 | Invert | Reverse]
 }
 
 main = {
