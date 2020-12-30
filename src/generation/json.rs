@@ -8,10 +8,7 @@ use serde_json::to_string;
 use weresocool_ast::{Defs, NameSet, NormalForm, Normalize, OscType, PointOp, ASR};
 use weresocool_error::Error;
 use weresocool_instrument::Basis;
-
-pub fn r_to_f64(r: Rational64) -> f64 {
-    *r.numer() as f64 / *r.denom() as f64
-}
+use weresocool_shared::{lossy_rational_mul_to_f64, r_to_f64};
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct TimedOp {
@@ -40,16 +37,16 @@ impl TimedOp {
         let y = if is_silent {
             0.0
         } else {
-            r_to_f64(basis.f).mul_add(r_to_f64(self.fm), r_to_f64(self.fa))
+            lossy_rational_mul_to_f64(basis.f, self.fm) + r_to_f64(self.fa)
         };
         let z = if is_silent {
             0.0
         } else {
-            r_to_f64(basis.g) * r_to_f64(self.g)
+            lossy_rational_mul_to_f64(basis.g, self.g)
         };
         Op4D {
-            l: r_to_f64(self.l) * r_to_f64(basis.l),
-            t: r_to_f64(self.t) * r_to_f64(basis.l),
+            l: lossy_rational_mul_to_f64(self.l, basis.l),
+            t: lossy_rational_mul_to_f64(self.t, basis.l),
             x: ((r_to_f64(basis.p) + r_to_f64(self.pa)) * r_to_f64(self.pm)),
             y: y.log10(),
             z,
@@ -296,22 +293,24 @@ struct Json1d {
     length: f64,
 }
 
+fn is_not_silent(op: &Op4D) -> bool {
+    let is_silent = op.y == 0.0 || op.z <= 0.0;
+    !is_silent
+}
+
 pub fn to_json(
     basis: &Basis,
     composition: &NormalForm,
     defs: &Defs,
     filename: String,
-) -> Result<(), Error> {
+    cli: bool,
+) -> Result<String, Error> {
     banner("JSONIFY-ing".to_string(), filename.clone());
 
     let (vec_timed_op, _) = composition_to_vec_timed_op(composition, defs)?;
     let mut op4d_1d = vec_timed_op_to_vec_op4d(vec_timed_op, basis);
 
-    //TODO: Factor out
-    op4d_1d.retain(|op| {
-        let is_silent = op.y == 0.0 || op.z <= 0.0;
-        !is_silent
-    });
+    op4d_1d.retain(|op| is_not_silent(op));
 
     let (normalizer, max_len) = get_min_max_op4d_1d(&op4d_1d);
 
@@ -321,11 +320,12 @@ pub fn to_json(
         ops: op4d_1d,
         length: max_len,
     })?;
+    if cli {
+        write_composition_to_json(&json, &filename)?;
+        printed("JSON".to_string());
+    }
 
-    write_composition_to_json(&json, &filename)?;
-    printed("JSON".to_string());
-
-    Ok(())
+    Ok(json)
 }
 
 pub fn to_csv(
@@ -339,10 +339,7 @@ pub fn to_csv(
     let (vec_timed_op, _) = composition_to_vec_timed_op(composition, defs)?;
     let mut op4d_1d = vec_timed_op_to_vec_op4d(vec_timed_op, basis);
 
-    op4d_1d.retain(|op| {
-        let is_silent = op.y == 0.0 || op.z <= 0.0;
-        !is_silent
-    });
+    op4d_1d.retain(|op| is_not_silent(op));
 
     let (normalizer, _max_len) = get_min_max_op4d_1d(&op4d_1d);
 

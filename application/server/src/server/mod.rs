@@ -23,15 +23,28 @@ pub struct PrintSuccess {
     print_type: String,
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct DataSuccess {
+    data: String,
+    print_type: String,
+}
+
 impl PrintSuccess {
     pub fn new(audio: Vec<u8>, print_type: String) -> Self {
         Self { audio, print_type }
     }
 }
 
+impl DataSuccess {
+    pub fn new(data: String, print_type: String) -> Self {
+        Self { data, print_type }
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug)]
 pub enum Success {
     RenderSuccess(String),
+    DataSuccess(DataSuccess),
     PrintSuccess(PrintSuccess),
     VolumeUpdate(String),
 }
